@@ -68,6 +68,21 @@
     <Compile Include="Registry\Natif.cs" />
     <Compile Include="Registry\RegistryUtilities.cs" />
     <Compile Include="Common\Utilities.cs" />
+    <Compile Include="Toggles\GraphicsExtensionMethods.cs" />
+    <Compile Include="Toggles\ImageHelper.cs" />
+    <Compile Include="Toggles\Renderers\ToggleSwitchAndroidRenderer.cs" />
+    <Compile Include="Toggles\Renderers\ToggleSwitchBrushedMetalRenderer.cs" />
+    <Compile Include="Toggles\Renderers\ToggleSwitchCarbonRenderer.cs" />
+    <Compile Include="Toggles\Renderers\ToggleSwitchFancyRenderer.cs" />
+    <Compile Include="Toggles\Renderers\ToggleSwitchIOS5Renderer.cs" />
+    <Compile Include="Toggles\Renderers\ToggleSwitchIphoneRenderer.cs" />
+    <Compile Include="Toggles\Renderers\ToggleSwitchMetroRenderer.cs" />
+    <Compile Include="Toggles\Renderers\ToggleSwitchModernRenderer.cs" />
+    <Compile Include="Toggles\Renderers\ToggleSwitchOSXRenderer.cs" />
+    <Compile Include="Toggles\Renderers\ToggleSwitchRendererBase.cs" />
+    <Compile Include="Toggles\ToggleSwitch.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>

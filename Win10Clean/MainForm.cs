@@ -13,7 +13,7 @@ using Win10Clean.Common;
 
 /*
  * Win10Clean - Cleanup your Windows 10 environment
- * Copyright (C) 2017 Hawaii_Beach & deadmoon
+ * Copyright (C) 2018 Hawaii_Beach & deadmoon
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,113 +55,378 @@ namespace Win10Clean
             CheckTweaks();
         }
 
-        /* Buttons / Main stuff */
+        /* Enable/Disable tweaks */
 
-        private void OneDriveBtn_Click(object sender, EventArgs e)
+        private void EnableWindowsDefender()
         {
-            Enabled = false;
-            if (MessageBox.Show("Are you sure?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes) {
-
-                string processName = "OneDrive";
-                int byteArray = BitConverter.ToInt32(BitConverter.GetBytes(0xb090010d), 0);
-                string onePath;
-
-                try {
-                    Process.GetProcessesByName(processName)[0].Kill();
-                } catch (Exception) { // Throws IndexOutOfRangeException
-                    Log("Could not kill process: " + processName);
-                    // ignore errors
+            var baseReg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            try
+            {
+                using (var key = baseReg.OpenSubKey(@"SOFTWARE\Policies\Microsoft\Windows Defender", true))
+                {
+                    key.SetValue("DisableAntiSpyware", 0, RegistryValueKind.DWord);
+                    Log("Main Windows Defender functions enabled!");
                 }
 
-                if (amd64) {
-                    onePath = Environment.GetFolderPath(Environment.SpecialFolder.SystemX86) + "\\OneDriveSetup.exe";
-                } else {
-                    onePath = Environment.GetFolderPath(Environment.SpecialFolder.System) + "\\OneDriveSetup.exe";
-                }
+                btnDefender.Checked = false;
+                MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
+                MessageBox.Show(ex.Message, ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                baseReg.Dispose();
+            }
+        }
 
-                try {
-                    Process.Start(onePath, "/uninstall");
-                    Log("Uninstalled OneDrive using the setup!");
-                } catch (Exception ex) {
+        private void DisableWindowsDefender()
+        {
+            var baseReg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            if (!defenderSwitch)
+            {
+                try
+                {
+                    // Disable engine
+                    using (var key = baseReg.OpenSubKey(@"SOFTWARE\Policies\Microsoft\Windows Defender", true))
+                    {
+                        key.SetValue("DisableAntiSpyware", 1, RegistryValueKind.DWord);
+                        Log("Disabled main Defender functions!");
+                    }
+
+                    // Delete Defender from startup / tray icons
+                    using (var key = baseReg.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true))
+                    {
+                        key.DeleteValue("WindowsDefender", false);
+                        key.DeleteValue("SecurityHealth", false);
+                        Log("Windows Defender removed from startup!");
+                    }
+
+                    // Unregister Defender shell extension
+                    // not really needed anymore as it seems like Defender disables the shell extention by its own now (not sure how) when disabled
+                    string defenderPath;
+
+                    if (amd64)
+                    {
+                        defenderPath = Environment.ExpandEnvironmentVariables("%ProgramW6432%");
+                    }
+                    else
+                    {
+                        defenderPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                    }
+                    defenderPath += @"\Windows Defender\shellext.dll";
+
+                    if (File.Exists(defenderPath))
+                    {
+                        CMDHelper.RunCommand(@"regsvr32 /u /s """ + defenderPath + "\"");
+                        Log("Windows Defender shell addons unregistered!");
+                    }
+                    else
+                    {
+                        Log("Could not unregister the Defender shell extention!");
+                    }
+
+                    btnDefender.Checked = true;
+                    MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
                     Log(ex.ToString());
+                    MessageBox.Show(ex.Message, ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    baseReg.Dispose();
+                }
+            }
+        }
+
+        private void EnableHomeGroup()
+        {
+            CMDHelper.RunCommand(@"sc config ""HomeGroupProvider"" start= enabled"); // stop autorun
+            CMDHelper.RunCommand(@"sc start ""HomeGroupProvider"""); // stop process now
+            Log("HomeGroup enabled!");
+
+            btnHomeGroup.Checked = false;
+            MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void DisableHomeGroup()
+        {
+            CMDHelper.RunCommand(@"sc config ""HomeGroupProvider"" start= disabled"); // stop autorun
+            CMDHelper.RunCommand(@"sc stop ""HomeGroupProvider"""); // stop process now
+            Log("HomeGroup disabled!");
+
+            btnHomeGroup.Checked = true;
+            MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void EnableSilentAppInstall()
+        {
+            try
+            {
+                using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", true))
+                {
+                    key.SetValue("SilentInstalledAppsEnabled", 1, RegistryValueKind.DWord);
                 }
 
-                // All the folders to be deleted
-                string[] onePaths = {
+                Log("Silent Modern App install enabled");
+                btnSilentAppInstall.Checked = false;
+                MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
+                MessageBox.Show(ex.ToString(), ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void DisableSilentAppInstall()
+        {
+            try
+            {
+                using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", true))
+                {
+                    key.SetValue("SilentInstalledAppsEnabled", 0, RegistryValueKind.DWord);
+                }
+
+                Log("Silent Modern App install disabled");
+                btnSilentAppInstall.Checked = true;
+                MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
+                MessageBox.Show(ex.ToString(), ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void EnableStartMenuAds()
+        {
+            try
+            {
+                using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", true))
+                {
+                    key.SetValue("SubscribedContent-338388Enabled", 1, RegistryValueKind.DWord);
+                }
+
+                Log("Start menu ads enabled!");
+                btnStartAds.Checked = false;
+                MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
+                MessageBox.Show(ex.ToString(), ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void DisableStartMenuAds()
+        {
+            try
+            {
+                using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", true))
+                {
+                    key.SetValue("SubscribedContent-338388Enabled", 0, RegistryValueKind.DWord);
+                }
+
+                Log("Start menu ads disabled!");
+                btnStartAds.Checked = true;
+                MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
+                MessageBox.Show(ex.ToString(), ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void InstallOneDrive()
+        {
+            string onePath;
+
+            if (amd64)
+            {
+                onePath = Environment.GetFolderPath(Environment.SpecialFolder.SystemX86) + "\\OneDriveSetup.exe";
+            }
+            else
+            {
+                onePath = Environment.GetFolderPath(Environment.SpecialFolder.System) + "\\OneDriveSetup.exe";
+            }
+
+            try
+            {
+                Process.Start(onePath);
+                btnOneDrive.Checked = false;
+                Log("Reinstalled OneDrive using the setup!");
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
+            }
+
+            string oneKey = @"CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}";
+            Registry.ClassesRoot.CreateSubKey(oneKey);
+            var baseReg = RegistryKey.OpenBaseKey(RegistryHive.ClassesRoot, RegistryView.Registry64);
+            try
+            {
+                // Add OneDrive in Explorer
+                using (var key = Registry.ClassesRoot.OpenSubKey(oneKey, true))
+                {
+                    key.SetValue("System.IsPinnedToNameSpaceTree", 1, RegistryValueKind.DWord);
+                    Log("OneDrive added in Explorer (FileDialog)!");
+                }
+
+                // amd64 system fix
+                if (amd64)
+                {
+                    using (var key = baseReg.OpenSubKey(oneKey, true))
+                    {
+                        key.SetValue("System.IsPinnedToNameSpaceTree", 1, RegistryValueKind.DWord);
+                        Log("OneDrive added in Explorer (FileDialog, amd64)!");
+                    }
+                }
+
+                // TO-DO: Add OneDrive in alternative file dialog (legacy), Add OneDrive to Windows start-up
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
+                MessageBox.Show(ex.Message, ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void UninstallOneDrive()
+        {
+            string processName = "OneDrive";
+            int byteArray = BitConverter.ToInt32(BitConverter.GetBytes(0xb090010d), 0);
+            string onePath;
+
+            try
+            {
+                Process.GetProcessesByName(processName)[0].Kill();
+            }
+            catch (Exception)
+            { // Throws IndexOutOfRangeException
+                Log("Could not kill process: " + processName);
+                // ignore errors
+            }
+
+            if (amd64)
+            {
+                onePath = Environment.GetFolderPath(Environment.SpecialFolder.SystemX86) + "\\OneDriveSetup.exe";
+            }
+            else
+            {
+                onePath = Environment.GetFolderPath(Environment.SpecialFolder.System) + "\\OneDriveSetup.exe";
+            }
+
+            try
+            {
+                Process.Start(onePath, "/uninstall");
+                btnOneDrive.Checked = true;
+                Log("Uninstalled OneDrive using the setup!");
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
+            }
+
+            // All the folders to be deleted
+            string[] onePaths = {
                     Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\OneDrive",
                     Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System)) + "OneDriveTemp",
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Microsoft\\OneDrive",
                     Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "\\Microsoft OneDrive"
                 };
 
-                foreach (string dir in onePaths) {
-                    if (Directory.Exists(dir)) {
-                        try {
-                            Directory.Delete(dir, true);
-                            Log("Folder deleted: " + dir);
-                        } catch (Exception) {
-                            Log("Could not delete folder: " + dir);
-                            // ignore errors
-                        }
+            foreach (string dir in onePaths)
+            {
+                if (Directory.Exists(dir))
+                {
+                    try
+                    {
+                        Directory.Delete(dir, true);
+                        Log("Folder deleted: " + dir);
+                    }
+                    catch (Exception)
+                    {
+                        Log("Could not delete folder: " + dir);
+                        // ignore errors
                     }
                 }
-
-                // Remove OneDrive from Explorer
-                string oneKey = @"CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}";
-                Registry.ClassesRoot.CreateSubKey(oneKey);
-
-                var baseReg = RegistryKey.OpenBaseKey(RegistryHive.ClassesRoot, RegistryView.Registry64);
-                try {
-                    // Remove from the Explorer file dialog
-                    using (var key = Registry.ClassesRoot.OpenSubKey(oneKey, true)) {
-                        key.SetValue("System.IsPinnedToNameSpaceTree", 0, RegistryValueKind.DWord);
-                        Log("OneDrive removed from Explorer (FileDialog)!");
-                    }
-
-                    // amd64 system fix
-                    if (amd64) {
-                        using (var key = baseReg.OpenSubKey(oneKey, true)) {
-                            key.SetValue("System.IsPinnedToNameSpaceTree", 0, RegistryValueKind.DWord);
-                            Log("OneDrive removed from Explorer (FileDialog, amd64)!");
-                        }
-                    }
-
-                    // Remove from the alternative file dialog (legacy)
-                    using (var key = Registry.ClassesRoot.OpenSubKey(oneKey + "\\ShellFolder", true)) {
-                        key.SetValue("Attributes", byteArray, RegistryValueKind.DWord);
-                        Log("OneDrive removed from Explorer (Legacy FileDialog)!");
-                    }
-
-                    // amd64 system fix
-                    if (amd64) {
-                        using (var key = baseReg.OpenSubKey(oneKey + "\\ShellFolder", true)) {
-                            key.SetValue("Attributes", byteArray, RegistryValueKind.DWord);
-                            Log("OneDrive removed from Explorer (Legacy FileDialog, amd64)!");
-                        }
-                    }
-
-                    baseReg = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
-                    // Remove the startup
-                    using (var key = baseReg.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true)) {
-                        key.DeleteValue("OneDriveSetup", false);
-                        Log("Removed startup object!");
-                    }
-                } catch (Exception ex) {
-                    Log(ex.ToString());
-                    MessageBox.Show(ex.Message, ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-
-                baseReg.Dispose();
-
-                // Delete scheduled leftovers
-                CMDHelper.RunCommand(@"SCHTASKS /Delete /TN ""OneDrive Standalone Update Task"" /F");
-                CMDHelper.RunCommand(@"SCHTASKS /Delete /TN ""OneDrive Standalone Update Task v2"" /F");
-                Log("OneDrive scheduled tasks deleted!");
-
-                MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            Enabled = true;
+
+            // Remove OneDrive from Explorer
+            string oneKey = @"CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}";
+            Registry.ClassesRoot.CreateSubKey(oneKey);
+
+            var baseReg = RegistryKey.OpenBaseKey(RegistryHive.ClassesRoot, RegistryView.Registry64);
+            try
+            {
+                // Remove from the Explorer file dialog
+                using (var key = Registry.ClassesRoot.OpenSubKey(oneKey, true))
+                {
+                    key.SetValue("System.IsPinnedToNameSpaceTree", 0, RegistryValueKind.DWord);
+                    Log("OneDrive removed from Explorer (FileDialog)!");
+                }
+
+                // amd64 system fix
+                if (amd64)
+                {
+                    using (var key = baseReg.OpenSubKey(oneKey, true))
+                    {
+                        key.SetValue("System.IsPinnedToNameSpaceTree", 0, RegistryValueKind.DWord);
+                        Log("OneDrive removed from Explorer (FileDialog, amd64)!");
+                    }
+                }
+
+                // Remove from the alternative file dialog (legacy)
+                using (var key = Registry.ClassesRoot.OpenSubKey(oneKey + "\\ShellFolder", true))
+                {
+                    key.SetValue("Attributes", byteArray, RegistryValueKind.DWord);
+                    Log("OneDrive removed from Explorer (Legacy FileDialog)!");
+                }
+
+                // amd64 system fix
+                if (amd64)
+                {
+                    using (var key = baseReg.OpenSubKey(oneKey + "\\ShellFolder", true))
+                    {
+                        key.SetValue("Attributes", byteArray, RegistryValueKind.DWord);
+                        Log("OneDrive removed from Explorer (Legacy FileDialog, amd64)!");
+                    }
+                }
+
+                baseReg = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
+                // Remove the startup
+                using (var key = baseReg.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true))
+                {
+                    key.DeleteValue("OneDriveSetup", false);
+                    Log("Removed startup object!");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
+                MessageBox.Show(ex.Message, ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            baseReg.Dispose();
+
+            // Delete scheduled leftovers
+            CMDHelper.RunCommand(@"SCHTASKS /Delete /TN ""OneDrive Standalone Update Task"" /F");
+            CMDHelper.RunCommand(@"SCHTASKS /Delete /TN ""OneDrive Standalone Update Task v2"" /F");
+            Log("OneDrive scheduled tasks deleted!");
+
+            MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
+        /* Buttons / Main stuff */
 
         private void btnUpdate_Click(object sender, EventArgs e)
         {
@@ -200,80 +465,6 @@ namespace Win10Clean
                 }
             }
             Log(string.Format("Offline: v{0} | Online: v{1} | Diff: {2}", offlineVer, onlineVer, diff));
-            Enabled = true;
-        }
-
-        private void btnDefender_Click(object sender, EventArgs e)
-        {
-            Enabled = false;
-            if (MessageBox.Show("Are you sure?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes) {
-                var baseReg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-                if (!defenderSwitch) {
-                    try {
-                        // Disable engine
-                        using (var key = baseReg.OpenSubKey(@"SOFTWARE\Policies\Microsoft\Windows Defender", true)) {
-                            key.SetValue("DisableAntiSpyware", 1, RegistryValueKind.DWord);
-                            Log("Disabled main Defender functions!");
-                        }
-
-                        // Delete Defender from startup / tray icons
-                        using (var key = baseReg.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true)) {
-                            key.DeleteValue("WindowsDefender", false);
-                            key.DeleteValue("SecurityHealth", false);
-                            Log("Windows Defender removed from startup!");
-                        }
-
-                        // Unregister Defender shell extension
-                        // not really needed anymore as it seems like Defender disables the shell extention by its own now (not sure how) when disabled
-                        string defenderPath;
-
-                        if (amd64) {
-                            defenderPath = Environment.ExpandEnvironmentVariables("%ProgramW6432%");
-                        } else {
-                            defenderPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-                        }
-                        defenderPath += @"\Windows Defender\shellext.dll";
-
-                        if (File.Exists(defenderPath)) {
-                            CMDHelper.RunCommand(@"regsvr32 /u /s """ + defenderPath + "\"");
-                            Log("Windows Defender shell addons unregistered!");
-                        } else {
-                            Log("Could not unregister the Defender shell extention!");
-                        }
-
-                        MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    } catch (Exception ex) {
-                        Log(ex.ToString());
-                        MessageBox.Show(ex.Message, ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                } else { // re-enable Defender
-                    try {
-                        using (var key = baseReg.OpenSubKey(@"SOFTWARE\Policies\Microsoft\Windows Defender", true)) {
-                            key.SetValue("DisableAntiSpyware", 0, RegistryValueKind.DWord);
-                            Log("Main Windows Defender functions enabled!");
-                        }
-
-                        MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    } catch (Exception ex) {
-                        Log(ex.ToString());
-                        MessageBox.Show(ex.Message, ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-                baseReg.Dispose();
-            }
-            Enabled = true;
-        }
-
-        private void HomeGroupBtn_Click(object sender, EventArgs e)
-        {
-            Enabled = false;
-            if (MessageBox.Show("Are you sure?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes) {
-                CMDHelper.RunCommand(@"sc config ""HomeGroupProvider"" start= disabled"); // stop autorun
-                CMDHelper.RunCommand(@"sc stop ""HomeGroupProvider"""); // stop process now
-                Log("HomeGroup disabled!");
-
-                MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
             Enabled = true;
         }
 
@@ -590,44 +781,6 @@ namespace Win10Clean
             Enabled = true;
         }
 
-        private void btnApps_Click(object sender, EventArgs e)
-        {
-            Enabled = false;
-            if (MessageBox.Show("Are you sure?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes) {
-                try {
-                    using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", true)) {
-                        key.SetValue("SilentInstalledAppsEnabled", 0, RegistryValueKind.DWord);
-                    }
-
-                    Log("Silent Modern App install disabled");
-                    MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                } catch (Exception ex) {
-                    Log(ex.ToString());
-                    MessageBox.Show(ex.ToString(), ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            Enabled = true;
-        }
-
-        private void btnStartAds_Click(object sender, EventArgs e)
-        {
-            Enabled = false;
-            if (MessageBox.Show("Are you sure?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes) {
-                try {
-                    using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", true)) {
-                        key.SetValue("SubscribedContent-338388Enabled", 0, RegistryValueKind.DWord);
-                    }
-
-                    Log("Start menu ads disabled!");
-                    MessageBox.Show("OK!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                } catch (Exception ex) {
-                    Log(ex.ToString());
-                    MessageBox.Show(ex.ToString(), ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            Enabled = true;
-        }
-
         private void btnExit_Click(object sender, EventArgs e)
         {
             Application.Exit();
@@ -660,34 +813,44 @@ namespace Win10Clean
         private void CheckTweaks()
         {
             // various checks
-            try {
+            try
+            {
 
                 // check defender state
-                using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Policies\Microsoft\Windows Defender", false)) {
-                    if ((int)key.GetValue("DisableAntiSpyware", 0) == 1) {
+                using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Policies\Microsoft\Windows Defender", false))
+                {
+                    if ((int)key.GetValue("DisableAntiSpyware", 0) == 1)
+                    {
                         defenderSwitch = true;
-                        btnDefender.Text = "Enable Windows Defender";
+                        btnDefender.Checked = true;
                     }
                 }
 
-                using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", false)) {
-                    if ((int)key.GetValue("SilentInstalledAppsEnabled", 1) == 0) {
-                        btnApps.Enabled = false; // "don't reinstall modern apps"
-                    } if ((int)key.GetValue("SubscribedContent-338388Enabled", 1) == 0) {
-                        btnStartAds.Enabled = false; // ads on start menu
+                using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", false))
+                {
+                    if ((int)key.GetValue("SilentInstalledAppsEnabled", 1) == 0)
+                    {
+                        btnSilentAppInstall.Checked = true;
+                    }
+                    if ((int)key.GetValue("SubscribedContent-338388Enabled", 1) == 0)
+                    {
+                        btnStartAds.Checked = true;
                     }
                 }
 
-            } catch { }
+            }
+            catch { }
 
             // is homegroup already disabled?
             var output = CMDHelper.RunCommandReturn("sc query HomeGroupProvider");
-            if (output.Contains("1  STOPPED")) {
-                HomeGroupBtn.Enabled = false; // TODO: enable reverse
+            if (output.Contains("1  STOPPED"))
+            {
+                btnHomeGroup.Checked = true;
             }
 
             // check internet connection
-            if (!NetworkInterface.GetIsNetworkAvailable()) {
+            if (!NetworkInterface.GetIsNetworkAvailable())
+            {
                 btnUpdate.Enabled = false;
                 Log("Checking for updates is disabled because no internet connection were found!");
             }
@@ -831,5 +994,64 @@ namespace Win10Clean
             this.Enabled = true;
         }
 
+        private void btnDefender_Click(object sender, EventArgs e)
+        {
+            if (!btnDefender.Checked)
+            {
+                DisableWindowsDefender();
+            }
+            else
+            {
+                EnableWindowsDefender();
+            }
+        }
+
+        private void btnHomeGroup_Click(object sender, EventArgs e)
+        {
+            if (!btnHomeGroup.Checked)
+            {
+                DisableHomeGroup();
+            }
+            else
+            {
+                EnableHomeGroup();
+            }
+        }
+
+        private void btnSilentAppInstall_Click(object sender, EventArgs e)
+        {
+            if (!btnSilentAppInstall.Checked)
+            {
+                DisableSilentAppInstall();
+            }
+            else
+            {
+                EnableSilentAppInstall();
+            }
+        }
+
+        private void btnStartAds_Click(object sender, EventArgs e)
+        {
+            if (!btnStartAds.Checked)
+            {
+                DisableStartMenuAds();
+            }
+            else
+            {
+                EnableStartMenuAds();
+            }
+        }
+
+        private void btnOneDrive_Click(object sender, EventArgs e)
+        {
+            if (!btnOneDrive.Checked)
+            {
+                UninstallOneDrive();
+            }
+            else
+            {
+                InstallOneDrive();
+            }
+        }
     }
 }

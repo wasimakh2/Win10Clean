@@ -33,13 +33,6 @@
             this.tabHome = new System.Windows.Forms.TabPage();
             this.btnExit = new System.Windows.Forms.Button();
             this.btnUpdate = new System.Windows.Forms.Button();
-            this.btnContext = new System.Windows.Forms.Button();
-            this.OneDriveBtn = new System.Windows.Forms.Button();
-            this.btnStartAds = new System.Windows.Forms.Button();
-            this.btnApps = new System.Windows.Forms.Button();
-            this.HomeGroupBtn = new System.Windows.Forms.Button();
-            this.Revert7Btn = new System.Windows.Forms.Button();
-            this.btnDefender = new System.Windows.Forms.Button();
             this.tabMetro = new System.Windows.Forms.TabPage();
             this.appPanel = new System.Windows.Forms.Panel();
             this.appBox = new System.Windows.Forms.CheckedListBox();
@@ -52,6 +45,13 @@
             this.consoleBox = new System.Windows.Forms.RichTextBox();
             this.tabAbout = new System.Windows.Forms.TabPage();
             this.aboutBox = new System.Windows.Forms.RichTextBox();
+            this.toggleSwitch7 = new Win10Clean.ToggleSwitch();
+            this.btnOneDrive = new Win10Clean.ToggleSwitch();
+            this.btnStartAds = new Win10Clean.ToggleSwitch();
+            this.btnSilentAppInstall = new Win10Clean.ToggleSwitch();
+            this.btnHomeGroup = new Win10Clean.ToggleSwitch();
+            this.toggleSwitch2 = new Win10Clean.ToggleSwitch();
+            this.btnDefender = new Win10Clean.ToggleSwitch();
             this.tabControl1.SuspendLayout();
             this.tabHome.SuspendLayout();
             this.tabMetro.SuspendLayout();
@@ -75,15 +75,15 @@
             // 
             // tabHome
             // 
+            this.tabHome.Controls.Add(this.toggleSwitch7);
+            this.tabHome.Controls.Add(this.btnOneDrive);
+            this.tabHome.Controls.Add(this.btnStartAds);
+            this.tabHome.Controls.Add(this.btnSilentAppInstall);
+            this.tabHome.Controls.Add(this.btnHomeGroup);
+            this.tabHome.Controls.Add(this.toggleSwitch2);
+            this.tabHome.Controls.Add(this.btnDefender);
             this.tabHome.Controls.Add(this.btnExit);
             this.tabHome.Controls.Add(this.btnUpdate);
-            this.tabHome.Controls.Add(this.btnContext);
-            this.tabHome.Controls.Add(this.OneDriveBtn);
-            this.tabHome.Controls.Add(this.btnStartAds);
-            this.tabHome.Controls.Add(this.btnApps);
-            this.tabHome.Controls.Add(this.HomeGroupBtn);
-            this.tabHome.Controls.Add(this.Revert7Btn);
-            this.tabHome.Controls.Add(this.btnDefender);
             this.tabHome.Location = new System.Drawing.Point(4, 25);
             this.tabHome.Name = "tabHome";
             this.tabHome.Padding = new System.Windows.Forms.Padding(3);
@@ -115,76 +115,6 @@
             this.btnUpdate.Text = "Update";
             this.btnUpdate.UseVisualStyleBackColor = true;
             this.btnUpdate.Click += new System.EventHandler(this.btnUpdate_Click);
-            // 
-            // btnContext
-            // 
-            this.btnContext.Location = new System.Drawing.Point(325, 225);
-            this.btnContext.Name = "btnContext";
-            this.btnContext.Size = new System.Drawing.Size(261, 40);
-            this.btnContext.TabIndex = 6;
-            this.btnContext.Text = "Cleanup Context Menus";
-            this.btnContext.UseVisualStyleBackColor = true;
-            this.btnContext.Click += new System.EventHandler(this.btnContext_Click);
-            // 
-            // OneDriveBtn
-            // 
-            this.OneDriveBtn.Location = new System.Drawing.Point(325, 179);
-            this.OneDriveBtn.Name = "OneDriveBtn";
-            this.OneDriveBtn.Size = new System.Drawing.Size(261, 40);
-            this.OneDriveBtn.TabIndex = 5;
-            this.OneDriveBtn.Text = "Uninstall OneDrive";
-            this.OneDriveBtn.UseVisualStyleBackColor = true;
-            this.OneDriveBtn.Click += new System.EventHandler(this.OneDriveBtn_Click);
-            // 
-            // btnStartAds
-            // 
-            this.btnStartAds.Location = new System.Drawing.Point(325, 133);
-            this.btnStartAds.Name = "btnStartAds";
-            this.btnStartAds.Size = new System.Drawing.Size(261, 40);
-            this.btnStartAds.TabIndex = 4;
-            this.btnStartAds.Text = "Disable start menu ads";
-            this.btnStartAds.UseVisualStyleBackColor = true;
-            this.btnStartAds.Click += new System.EventHandler(this.btnStartAds_Click);
-            // 
-            // btnApps
-            // 
-            this.btnApps.Location = new System.Drawing.Point(58, 271);
-            this.btnApps.Name = "btnApps";
-            this.btnApps.Size = new System.Drawing.Size(261, 40);
-            this.btnApps.TabIndex = 3;
-            this.btnApps.Text = "Don\'t reinstall modern apps";
-            this.btnApps.UseVisualStyleBackColor = true;
-            this.btnApps.Click += new System.EventHandler(this.btnApps_Click);
-            // 
-            // HomeGroupBtn
-            // 
-            this.HomeGroupBtn.Location = new System.Drawing.Point(58, 225);
-            this.HomeGroupBtn.Name = "HomeGroupBtn";
-            this.HomeGroupBtn.Size = new System.Drawing.Size(261, 40);
-            this.HomeGroupBtn.TabIndex = 2;
-            this.HomeGroupBtn.Text = "Disable HomeGroup";
-            this.HomeGroupBtn.UseVisualStyleBackColor = true;
-            this.HomeGroupBtn.Click += new System.EventHandler(this.HomeGroupBtn_Click);
-            // 
-            // Revert7Btn
-            // 
-            this.Revert7Btn.Location = new System.Drawing.Point(58, 179);
-            this.Revert7Btn.Name = "Revert7Btn";
-            this.Revert7Btn.Size = new System.Drawing.Size(261, 40);
-            this.Revert7Btn.TabIndex = 1;
-            this.Revert7Btn.Text = "Revert Explorer to Windows 7 Style";
-            this.Revert7Btn.UseVisualStyleBackColor = true;
-            this.Revert7Btn.Click += new System.EventHandler(this.Revert7Btn_Click);
-            // 
-            // btnDefender
-            // 
-            this.btnDefender.Location = new System.Drawing.Point(58, 133);
-            this.btnDefender.Name = "btnDefender";
-            this.btnDefender.Size = new System.Drawing.Size(261, 40);
-            this.btnDefender.TabIndex = 0;
-            this.btnDefender.Text = "Disable Windows Defender";
-            this.btnDefender.UseVisualStyleBackColor = true;
-            this.btnDefender.Click += new System.EventHandler(this.btnDefender_Click);
             // 
             // tabMetro
             // 
@@ -324,6 +254,88 @@
             this.aboutBox.TabIndex = 1;
             this.aboutBox.Text = resources.GetString("aboutBox.Text");
             // 
+            // toggleSwitch7
+            // 
+            this.toggleSwitch7.Location = new System.Drawing.Point(314, 131);
+            this.toggleSwitch7.Name = "toggleSwitch7";
+            this.toggleSwitch7.OffFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.toggleSwitch7.OffText = "Cleanup Context Menus";
+            this.toggleSwitch7.OnFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.toggleSwitch7.OnText = "Cleanup Context Menus";
+            this.toggleSwitch7.Size = new System.Drawing.Size(286, 44);
+            this.toggleSwitch7.TabIndex = 16;
+            // 
+            // btnOneDrive
+            // 
+            this.btnOneDrive.Location = new System.Drawing.Point(314, 81);
+            this.btnOneDrive.Name = "btnOneDrive";
+            this.btnOneDrive.OffFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnOneDrive.OffText = "Uninstall OneDrive";
+            this.btnOneDrive.OnFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnOneDrive.OnText = "Uninstall OneDrive";
+            this.btnOneDrive.Size = new System.Drawing.Size(286, 44);
+            this.btnOneDrive.TabIndex = 15;
+            this.btnOneDrive.Click += new System.EventHandler(this.btnOneDrive_Click);
+            // 
+            // btnStartAds
+            // 
+            this.btnStartAds.Location = new System.Drawing.Point(314, 31);
+            this.btnStartAds.Name = "btnStartAds";
+            this.btnStartAds.OffFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnStartAds.OffText = "Disable Start Menu Ads";
+            this.btnStartAds.OnFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnStartAds.OnText = "Disable Start Menu Ads";
+            this.btnStartAds.Size = new System.Drawing.Size(286, 44);
+            this.btnStartAds.TabIndex = 14;
+            this.btnStartAds.Click += new System.EventHandler(this.btnStartAds_Click);
+            // 
+            // btnSilentAppInstall
+            // 
+            this.btnSilentAppInstall.Location = new System.Drawing.Point(22, 181);
+            this.btnSilentAppInstall.Name = "btnSilentAppInstall";
+            this.btnSilentAppInstall.OffFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSilentAppInstall.OffText = "Don\'t Reinstall Modern Apps";
+            this.btnSilentAppInstall.OnFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSilentAppInstall.OnText = "Don\'t Reinstall Modern Apps";
+            this.btnSilentAppInstall.Size = new System.Drawing.Size(286, 44);
+            this.btnSilentAppInstall.TabIndex = 13;
+            this.btnSilentAppInstall.Click += new System.EventHandler(this.btnSilentAppInstall_Click);
+            // 
+            // btnHomeGroup
+            // 
+            this.btnHomeGroup.Location = new System.Drawing.Point(22, 131);
+            this.btnHomeGroup.Name = "btnHomeGroup";
+            this.btnHomeGroup.OffFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnHomeGroup.OffText = "Disable HomeGroup Service";
+            this.btnHomeGroup.OnFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnHomeGroup.OnText = "Disable HomeGroup Service";
+            this.btnHomeGroup.Size = new System.Drawing.Size(286, 44);
+            this.btnHomeGroup.TabIndex = 12;
+            this.btnHomeGroup.Click += new System.EventHandler(this.btnHomeGroup_Click);
+            // 
+            // toggleSwitch2
+            // 
+            this.toggleSwitch2.Location = new System.Drawing.Point(22, 81);
+            this.toggleSwitch2.Name = "toggleSwitch2";
+            this.toggleSwitch2.OffFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.toggleSwitch2.OffText = "Revert Explorer to Windows 7 Style";
+            this.toggleSwitch2.OnFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.toggleSwitch2.OnText = "Revert Explorer to Windows 7 Style";
+            this.toggleSwitch2.Size = new System.Drawing.Size(286, 44);
+            this.toggleSwitch2.TabIndex = 11;
+            // 
+            // btnDefender
+            // 
+            this.btnDefender.Location = new System.Drawing.Point(22, 31);
+            this.btnDefender.Name = "btnDefender";
+            this.btnDefender.OffFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnDefender.OffText = "Disable Windows Defender";
+            this.btnDefender.OnFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnDefender.OnText = "Disable Windows Defender";
+            this.btnDefender.Size = new System.Drawing.Size(286, 44);
+            this.btnDefender.TabIndex = 10;
+            this.btnDefender.Click += new System.EventHandler(this.btnDefender_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
@@ -358,13 +370,6 @@
         private System.Windows.Forms.TabPage tabAbout;
         private System.Windows.Forms.Button btnExit;
         private System.Windows.Forms.Button btnUpdate;
-        private System.Windows.Forms.Button btnContext;
-        private System.Windows.Forms.Button OneDriveBtn;
-        private System.Windows.Forms.Button btnStartAds;
-        private System.Windows.Forms.Button btnApps;
-        private System.Windows.Forms.Button HomeGroupBtn;
-        private System.Windows.Forms.Button Revert7Btn;
-        private System.Windows.Forms.Button btnDefender;
         private System.Windows.Forms.RichTextBox consoleBox;
         private System.Windows.Forms.RichTextBox aboutBox;
         private System.Windows.Forms.Button btnExport;
@@ -374,6 +379,13 @@
         private System.Windows.Forms.Button UninstallBtn;
         private System.Windows.Forms.Button btnRefresh;
         private System.Windows.Forms.CheckedListBox appBox;
+        private ToggleSwitch btnDefender;
+        private ToggleSwitch toggleSwitch7;
+        private ToggleSwitch btnOneDrive;
+        private ToggleSwitch btnStartAds;
+        private ToggleSwitch btnSilentAppInstall;
+        private ToggleSwitch btnHomeGroup;
+        private ToggleSwitch toggleSwitch2;
     }
 }
 

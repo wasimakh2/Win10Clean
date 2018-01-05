@@ -3,7 +3,7 @@ using Microsoft.Win32;
 
 /*
  * Win10Clean - Cleanup your Windows 10 environment
- * Copyright (C) 2017 Hawaii_Beach & deadmoon
+ * Copyright (C) 2018 Hawaii_Beach & deadmoon
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
